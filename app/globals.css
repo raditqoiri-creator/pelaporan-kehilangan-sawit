@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-ink-900/10;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(20,31,25,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  ::selection {
+    @apply bg-alert/20;
+  }
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  input[type="number"],
+  textarea,
+  select {
+    @apply outline-none;
+  }
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    @apply ring-2 ring-canopy-600 ring-offset-2 ring-offset-paper-50;
+  }
+}
+
+@layer components {
+  .field-shell {
+    @apply w-full rounded-lg border border-ink-900/15 bg-paper-50 px-3.5 py-2.5 text-[15px] text-ink-900 placeholder:text-ink-500/70 transition;
+  }
+  .field-shell:focus {
+    @apply border-canopy-600;
+  }
+  .field-label {
+    @apply mb-1.5 flex items-center gap-1 text-[13px] font-semibold uppercase tracking-wide text-ink-700;
+  }
+  .card-shell {
+    @apply rounded-2xl border border-ink-900/10 bg-paper-50 shadow-[0_1px_2px_rgba(20,31,25,0.06)] transition-shadow;
+  }
+}
+
+.leaflet-container {
+  font-family: var(--font-public-sans);
+}
