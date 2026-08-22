@@ -3,14 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { COMPANY_NAME, APP_NAME } from "@/components/BrandMark";
+import ConfirmModal from "@/components/ConfirmModal";
 
-export default function UsersClient({ initialUsers }) {
+export default function UsersClient({ initialUsers, currentUsername }) {
   const [users, setUsers] = useState(initialUsers);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nama: "", username: "", password: "" });
+  const [form, setForm] = useState({ nama: "", username: "", password: "", role: "admin" });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, nama }
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   async function handleAdd(e) {
     e.preventDefault();
@@ -25,7 +28,7 @@ export default function UsersClient({ initialUsers }) {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Gagal menambah admin.");
       setUsers((u) => [...u, json.data]);
-      setForm({ nama: "", username: "", password: "" });
+      setForm({ nama: "", username: "", password: "", role: "admin" });
       setShowForm(false);
     } catch (err) {
       setError(err.message);
@@ -34,18 +37,20 @@ export default function UsersClient({ initialUsers }) {
     }
   }
 
-  async function handleDelete(id) {
-    if (!confirm("Hapus akun admin ini? Tindakan tidak bisa dibatalkan.")) return;
-    setDeletingId(id);
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError("");
     try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/users/${deleteTarget.id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Gagal menghapus admin.");
-      setUsers((u) => u.filter((x) => x.id !== id));
+      setUsers((u) => u.filter((x) => x.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (err) {
-      alert(err.message);
+      setDeleteError(err.message);
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   }
 
@@ -55,6 +60,7 @@ export default function UsersClient({ initialUsers }) {
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-5 py-3.5">
           <Link
             href="/admin/dashboard"
+            aria-label="Kembali ke dashboard"
             className="flex h-8 w-8 items-center justify-center rounded-full border border-paper-50/25 text-paper-50"
           >
             ←
@@ -104,16 +110,32 @@ export default function UsersClient({ initialUsers }) {
                 />
               </div>
             </div>
-            <div className="mt-4">
-              <label className="field-label">Password (min. 8 karakter)</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                className="field-shell"
-                value={form.password}
-                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              />
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="field-label">Password (min. 8 karakter)</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  className="field-shell"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="field-label">Peran</label>
+                <select
+                  className="field-shell"
+                  value={form.role}
+                  onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                >
+                  <option value="admin">Admin (petugas)</option>
+                  <option value="superadmin">Superadmin</option>
+                </select>
+                <p className="mt-1 text-[11px] text-ink-500">
+                  Superadmin bisa kelola akun admin lain &amp; hapus laporan.
+                </p>
+              </div>
             </div>
             {error && (
               <p className="mt-3 rounded-lg bg-alert-light px-3 py-2 text-xs text-alert-dark">{error}</p>
@@ -128,6 +150,10 @@ export default function UsersClient({ initialUsers }) {
           </form>
         )}
 
+        {deleteError && (
+          <p className="mb-3 rounded-lg bg-alert-light px-3 py-2 text-xs text-alert-dark">{deleteError}</p>
+        )}
+
         <div className="space-y-2">
           {users.map((u) => (
             <div
@@ -135,20 +161,47 @@ export default function UsersClient({ initialUsers }) {
               className="flex items-center justify-between rounded-xl border border-ink-900/10 bg-paper-50 p-4"
             >
               <div>
-                <p className="font-display text-sm font-bold text-canopy-900">{u.nama}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-display text-sm font-bold text-canopy-900">{u.nama}</p>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                      u.role === "superadmin"
+                        ? "bg-gold-600/20 text-gold-dark"
+                        : "bg-ink-900/5 text-ink-500"
+                    }`}
+                  >
+                    {u.role === "superadmin" ? "Superadmin" : "Admin"}
+                  </span>
+                  {u.username === currentUsername && (
+                    <span className="rounded bg-canopy-700/10 px-1.5 py-0.5 text-[10px] font-semibold text-canopy-700">
+                      Kamu
+                    </span>
+                  )}
+                </div>
                 <p className="font-mono text-xs text-ink-500">@{u.username}</p>
               </div>
               <button
-                onClick={() => handleDelete(u.id)}
-                disabled={deletingId === u.id}
-                className="rounded-md border border-alert/30 px-3 py-1.5 text-xs font-semibold text-alert-dark transition hover:bg-alert-light disabled:opacity-50"
+                onClick={() => setDeleteTarget({ id: u.id, nama: u.nama })}
+                aria-label={`Hapus admin ${u.nama}`}
+                className="rounded-md border border-alert/30 px-3 py-1.5 text-xs font-semibold text-alert-dark transition hover:bg-alert-light"
               >
-                {deletingId === u.id ? "..." : "Hapus"}
+                Hapus
               </button>
             </div>
           ))}
         </div>
       </div>
+
+      <ConfirmModal
+        open={Boolean(deleteTarget)}
+        title={`Hapus akun ${deleteTarget?.nama || ""}?`}
+        message="Tindakan ini tidak bisa dibatalkan. Akun tidak akan bisa login lagi setelah dihapus."
+        confirmLabel="Ya, hapus"
+        danger
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

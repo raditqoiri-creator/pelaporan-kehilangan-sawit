@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import SignaturePad from "./SignaturePad";
+import { compressImage } from "@/lib/compressImage";
 
 const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
@@ -19,7 +20,7 @@ const KATEGORI_OPTIONS = [
   { value: "kehilangan", label: "Kehilangan (bukan indikasi pencurian)" },
   { value: "percobaan", label: "Percobaan pencurian / mencurigakan" },
 ];
-const MAX_PHOTO_MB = 8;
+const MAX_PHOTO_MB = 15; // batas file ASLI sebelum dikompres — hasil akhir jauh lebih kecil
 const SECTIONS = ["waktu", "lokasi", "rincian", "bukti"];
 
 function todayISO() {
@@ -47,6 +48,7 @@ export default function ReportForm() {
   const [signature, setSignature] = useState(null);
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoError, setPhotoError] = useState("");
+  const [compressing, setCompressing] = useState(false);
   const fileInputRef = useRef(null);
   const mountedAt = useRef(Date.now());
   const formRef = useRef(null);
@@ -57,6 +59,7 @@ export default function ReportForm() {
     nama_pelapor: "",
     afdeling: "",
     blok: "",
+    tahun_tanam: "",
     tm: "",
     kategori: "pencurian",
     keterangan: "",
@@ -75,7 +78,7 @@ export default function ReportForm() {
     setFields((f) => ({ ...f, [key]: value }));
   }
 
-  function handlePhotoSelect(e) {
+  async function handlePhotoSelect(e) {
     const files = Array.from(e.target.files || []).slice(0, 6);
     const tooBig = files.filter((f) => f.size > MAX_PHOTO_MB * 1024 * 1024);
     if (tooBig.length > 0) {
@@ -85,7 +88,15 @@ export default function ReportForm() {
     } else {
       setPhotoError("");
     }
-    setPhotoFiles(files.filter((f) => f.size <= MAX_PHOTO_MB * 1024 * 1024));
+
+    const okFiles = files.filter((f) => f.size <= MAX_PHOTO_MB * 1024 * 1024);
+    setCompressing(true);
+    try {
+      const compressed = await Promise.all(okFiles.map((f) => compressImage(f)));
+      setPhotoFiles(compressed);
+    } finally {
+      setCompressing(false);
+    }
   }
 
   function removePhoto(idx) {
@@ -117,6 +128,11 @@ export default function ReportForm() {
       return;
     }
 
+    if (compressing) {
+      setErrorMsg("Tunggu proses kompresi foto selesai, lalu coba kirim lagi.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formData = new FormData();
@@ -128,7 +144,22 @@ export default function ReportForm() {
       photoFiles.forEach((file) => formData.append("foto", file));
 
       const res = await fetch("/api/laporan", { method: "POST", body: formData });
-      const json = await res.json();
+
+      // Respons bisa saja bukan JSON sama sekali — mis. Vercel menolak request
+      // yang kebesaran (413 Request Entity Too Large) dengan halaman teks/HTML,
+      // bukan JSON dari aplikasi kita. res.json() langsung di sini akan melempar
+      // error "Unexpected token" yang membingungkan kalau tidak ditangani.
+      let json = null;
+      try {
+        json = await res.json();
+      } catch {
+        if (res.status === 413) {
+          throw new Error(
+            "Data yang dikirim terlalu besar (biasanya karena foto). Kurangi jumlah foto lalu coba lagi."
+          );
+        }
+        throw new Error(`Server tidak merespons dengan benar (kode ${res.status}). Coba lagi.`);
+      }
 
       if (!res.ok) {
         throw new Error(json.error || "Gagal mengirim laporan.");
@@ -150,6 +181,7 @@ export default function ReportForm() {
       nama_pelapor: "",
       afdeling: "",
       blok: "",
+      tahun_tanam: "",
       tm: "",
       kategori: "pencurian",
       keterangan: "",
@@ -343,7 +375,21 @@ export default function ReportForm() {
         </div>
 
         <div className="mt-4">
-          <label className="field-label">TM</label>
+          <label className="field-label">Tahun Tanam</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="cth. 2009"
+            maxLength={4}
+            className="field-shell"
+            value={fields.tahun_tanam}
+            onChange={(e) => update("tahun_tanam", e.target.value.replace(/[^0-9]/g, ""))}
+          />
+          <p className="mt-1 text-xs text-ink-500">Tahun tanam blok terkait, sesuai catatan kebun</p>
+        </div>
+
+        <div className="mt-4">
+          <label className="field-label">Jumlah TBS Dicuri</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -367,7 +413,7 @@ export default function ReportForm() {
               +
             </button>
           </div>
-          <p className="mt-1 text-xs text-ink-500">Sesuaikan dengan satuan pencatatan internal kebun</p>
+          <p className="mt-1 text-xs text-ink-500">Jumlah tandan buah segar (TBS) yang hilang/dicuri</p>
         </div>
 
         <div className="mt-4">
@@ -424,8 +470,11 @@ export default function ReportForm() {
 
         <div className="mt-5">
           <label className="field-label">
-            Dokumentasi (opsional, maks. 6 foto, {MAX_PHOTO_MB}MB/foto)
+            Dokumentasi (opsional, maks. 6 foto)
           </label>
+          <p className="-mt-0.5 mb-2 text-xs text-ink-500">
+            Foto otomatis dikompres agar cepat &amp; pasti terkirim, walau diambil langsung dari kamera.
+          </p>
           <input
             ref={fileInputRef}
             type="file"
@@ -438,10 +487,23 @@ export default function ReportForm() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-900/20 bg-paper-100 py-4 text-sm font-medium text-ink-700 transition hover:border-canopy-600 hover:text-canopy-700"
+            disabled={compressing}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-900/20 bg-paper-100 py-4 text-sm font-medium text-ink-700 transition hover:border-canopy-600 hover:text-canopy-700 disabled:opacity-60"
           >
-            <CameraIcon />
-            Ambil / pilih foto lokasi
+            {compressing ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Mengompres foto...
+              </>
+            ) : (
+              <>
+                <CameraIcon />
+                Ambil / pilih foto lokasi
+              </>
+            )}
           </button>
 
           {photoError && (
@@ -535,7 +597,7 @@ function SendIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
       <path
-        d="M4 12l16-8-6 8 6 8-16-8zm0 0h9"
+        d="M20 12L4 4l6 8-6 8 16-8zm0 0H11"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"

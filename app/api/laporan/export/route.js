@@ -25,7 +25,10 @@ const COLUMNS = [
   ["nama_pelapor", "Nama Pelapor"],
   ["afdeling", "Afdeling"],
   ["blok", "Blok"],
-  ["tm", "TM"],
+  ["tahun_tanam", "Tahun Tanam"],
+  ["tm", "TBS Dicuri"],
+  ["estimasi_kerugian", "Estimasi Kerugian (Rp)"],
+  ["saksi", "Saksi"],
   ["kategori", "Kategori"],
   ["keterangan", "Keterangan"],
   ["lat", "Latitude"],
@@ -46,12 +49,22 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
+  const dari = searchParams.get("dari");
+  const sampai = searchParams.get("sampai");
 
   let query = "SELECT * FROM laporan WHERE 1=1";
   const params = [];
   if (status && status !== "semua") {
     params.push(status);
     query += ` AND status = $${params.length}`;
+  }
+  if (dari) {
+    params.push(dari);
+    query += ` AND tanggal >= $${params.length}`;
+  }
+  if (sampai) {
+    params.push(sampai);
+    query += ` AND tanggal <= $${params.length}`;
   }
   query += " ORDER BY dibuat_pada DESC";
 
@@ -64,7 +77,7 @@ export async function GET(request) {
   // BOM (\uFEFF) supaya Excel langsung mengenali encoding UTF-8 dengan benar
   const csv = "\uFEFF" + [header, ...lines].join("\r\n");
 
-  const filename = `laporan-kehilangan-sawit-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `siaga-tbs-laporan-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {
     status: 200,

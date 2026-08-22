@@ -26,7 +26,12 @@ export async function POST(request) {
     );
   }
 
-  await createSession({ uid: user.id, username: user.username, nama: user.nama });
+  await createSession({
+    uid: user.id,
+    username: user.username,
+    nama: user.nama,
+    role: user.role || "admin",
+  });
 
   return NextResponse.json({ ok: true });
 }

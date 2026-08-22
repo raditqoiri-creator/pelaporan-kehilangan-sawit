@@ -429,7 +429,8 @@ export default function DashboardClient({ initialData, adminName }) {
                     <Field label="Pukul" value={detail.pukul} />
                     <Field label="Afdeling" value={detail.afdeling} />
                     <Field label="Blok" value={detail.blok} />
-                    <Field label="TM" value={detail.tm || "-"} />
+                    <Field label="Tahun Tanam" value={detail.tahun_tanam || "-"} />
+                    <Field label="TBS Dicuri" value={detail.tm || "-"} />
                     <Field
                       label="Koordinat"
                       value={

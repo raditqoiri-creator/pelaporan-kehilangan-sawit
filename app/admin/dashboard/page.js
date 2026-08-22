@@ -13,6 +13,7 @@ export default async function DashboardPage() {
     <DashboardClient
       initialData={rows}
       adminName={session?.nama || "Administrator"}
+      adminRole={session?.role || "admin"}
     />
   );
 }

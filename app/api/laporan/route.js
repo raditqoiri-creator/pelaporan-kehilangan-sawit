@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql, ensureSchema, generateKode } from "@/lib/db";
 import { saveUploadedPhoto, saveSignatureDataUrl } from "@/lib/files";
 import { getSession } from "@/lib/auth";
+import { notifyLaporanBaru } from "@/lib/notify";
 
 const REQUIRED_FIELDS = [
   "tanggal",
@@ -22,7 +23,7 @@ export async function POST(request) {
 
     const form = await request.formData();
     const data = {};
-    for (const key of REQUIRED_FIELDS.concat(["tm", "kategori", "ttd", "website", "render_ts"])) {
+    for (const key of REQUIRED_FIELDS.concat(["tm", "tahun_tanam", "kategori", "ttd", "website", "render_ts", "estimasi_kerugian", "saksi"])) {
       data[key] = form.get(key);
     }
 
@@ -85,13 +86,17 @@ export async function POST(request) {
     const kode = generateKode();
     const ttdUrl = await saveSignatureDataUrl(data.ttd);
 
+    // Terima input bebas seperti "Rp 2.500.000" atau "2500000" — ambil angkanya saja.
+    const kerugianRaw = String(data.estimasi_kerugian || "").replace(/[^0-9]/g, "");
+    const estimasiKerugian = kerugianRaw ? Number(kerugianRaw) : null;
+
     const [laporan] = await sql`
       INSERT INTO laporan
-        (kode, tanggal, pukul, nama_pelapor, afdeling, blok, tm, kategori, keterangan, lat, lng, ttd_path)
+        (kode, tanggal, pukul, nama_pelapor, afdeling, blok, tm, tahun_tanam, kategori, keterangan, lat, lng, ttd_path, estimasi_kerugian, saksi)
       VALUES
         (${kode}, ${data.tanggal}, ${data.pukul}, ${String(data.nama_pelapor).trim()}, ${data.afdeling}, ${data.blok},
-         ${data.tm || null}, ${data.kategori || "pencurian"}, ${String(data.keterangan).trim()},
-         ${lat}, ${lng}, ${ttdUrl})
+         ${data.tm || null}, ${data.tahun_tanam || null}, ${data.kategori || "pencurian"}, ${String(data.keterangan).trim()},
+         ${lat}, ${lng}, ${ttdUrl}, ${estimasiKerugian}, ${data.saksi ? String(data.saksi).trim() : null})
       RETURNING id
     `;
 
@@ -99,6 +104,19 @@ export async function POST(request) {
       const url = await saveUploadedPhoto(photo);
       await sql`INSERT INTO dokumentasi (laporan_id, file_path) VALUES (${laporan.id}, ${url})`;
     }
+
+    // Notifikasi email — sengaja tidak di-await supaya respons ke pelapor tetap
+    // cepat; kegagalan kirim email ditangani sendiri di dalam notifyLaporanBaru
+    // dan tidak akan pernah menggagalkan penyimpanan laporan.
+    notifyLaporanBaru({
+      kode,
+      nama_pelapor: data.nama_pelapor,
+      afdeling: data.afdeling,
+      blok: data.blok,
+      tanggal: data.tanggal,
+      pukul: data.pukul,
+      keterangan: data.keterangan,
+    });
 
     return NextResponse.json({ ok: true, kode }, { status: 201 });
   } catch (err) {
@@ -121,6 +139,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const q = searchParams.get("q");
+  const dari = searchParams.get("dari");
+  const sampai = searchParams.get("sampai");
 
   let query = "SELECT * FROM laporan WHERE 1=1";
   const params = [];
@@ -128,6 +148,14 @@ export async function GET(request) {
   if (status && status !== "semua") {
     params.push(status);
     query += ` AND status = $${params.length}`;
+  }
+  if (dari) {
+    params.push(dari);
+    query += ` AND tanggal >= $${params.length}`;
+  }
+  if (sampai) {
+    params.push(sampai);
+    query += ` AND tanggal <= $${params.length}`;
   }
   if (q) {
     const like = `%${q}%`;

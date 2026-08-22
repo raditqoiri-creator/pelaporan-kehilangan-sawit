@@ -7,6 +7,9 @@ export async function DELETE(_request, { params }) {
   if (!session) {
     return NextResponse.json({ error: "Tidak diizinkan." }, { status: 401 });
   }
+  if (session.role !== "superadmin") {
+    return NextResponse.json({ error: "Hanya superadmin yang bisa menghapus akun admin." }, { status: 403 });
+  }
   await ensureSchema();
 
   const id = Number(params.id);

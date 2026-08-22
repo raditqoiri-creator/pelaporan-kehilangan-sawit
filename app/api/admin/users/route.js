@@ -8,9 +8,12 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ error: "Tidak diizinkan." }, { status: 401 });
   }
+  if (session.role !== "superadmin") {
+    return NextResponse.json({ error: "Hanya superadmin yang bisa mengelola akun admin." }, { status: 403 });
+  }
   await ensureSchema();
   const rows = await sql`
-    SELECT id, username, nama, dibuat_pada FROM admin_user ORDER BY dibuat_pada ASC
+    SELECT id, username, nama, role, dibuat_pada FROM admin_user ORDER BY dibuat_pada ASC
   `;
   return NextResponse.json({ data: rows });
 }
@@ -20,9 +23,12 @@ export async function POST(request) {
   if (!session) {
     return NextResponse.json({ error: "Tidak diizinkan." }, { status: 401 });
   }
+  if (session.role !== "superadmin") {
+    return NextResponse.json({ error: "Hanya superadmin yang bisa menambah akun admin." }, { status: 403 });
+  }
   await ensureSchema();
 
-  const { username, password, nama } = await request.json();
+  const { username, password, nama, role } = await request.json();
   if (!username || !password || !nama) {
     return NextResponse.json(
       { error: "Username, password, dan nama wajib diisi." },
@@ -44,11 +50,12 @@ export async function POST(request) {
     );
   }
 
+  const finalRole = role === "superadmin" ? "superadmin" : "admin";
   const hash = bcrypt.hashSync(password, 10);
   const [created] = await sql`
-    INSERT INTO admin_user (username, password_hash, nama)
-    VALUES (${username.trim()}, ${hash}, ${nama.trim()})
-    RETURNING id, username, nama, dibuat_pada
+    INSERT INTO admin_user (username, password_hash, nama, role)
+    VALUES (${username.trim()}, ${hash}, ${nama.trim()}, ${finalRole})
+    RETURNING id, username, nama, role, dibuat_pada
   `;
 
   return NextResponse.json({ data: created }, { status: 201 });
