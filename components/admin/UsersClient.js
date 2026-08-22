@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { COMPANY_NAME, APP_NAME } from "@/components/BrandMark";
 
 export default function UsersClient({ initialUsers }) {
   const [users, setUsers] = useState(initialUsers);
@@ -59,8 +60,11 @@ export default function UsersClient({ initialUsers }) {
             ←
           </Link>
           <div>
+            <p className="text-[9.5px] font-semibold uppercase tracking-wider text-gold">
+              {COMPANY_NAME}
+            </p>
             <p className="font-display text-sm font-bold text-paper-50">Kelola Akun Admin</p>
-            <p className="text-[11px] text-paper-50/60">Lapor Kehilangan Sawit</p>
+            <p className="text-[11px] text-paper-50/60">{APP_NAME}</p>
           </div>
         </div>
       </header>

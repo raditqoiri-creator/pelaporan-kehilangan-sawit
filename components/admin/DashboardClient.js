@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import StatusBadge from "@/components/StatusBadge";
+import { BrandMark, COMPANY_NAME, APP_NAME } from "@/components/BrandMark";
 
 const AdminMapView = dynamic(() => import("./AdminMapView"), {
   ssr: false,
@@ -29,7 +30,7 @@ const KATEGORI_LABEL = {
 };
 
 const POLL_INTERVAL_MS = 12000;
-const BASE_TITLE = "Panel Keamanan · Lapor Kehilangan Sawit";
+const BASE_TITLE = `Panel Keamanan · ${APP_NAME}`;
 
 function formatTanggal(str) {
   if (!str) return "-";
@@ -209,15 +210,16 @@ export default function DashboardClient({ initialData, adminName }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-600">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#0D2318" />
-              </svg>
+              <BrandMark size={15} />
             </div>
             <div>
+              <p className="text-[9.5px] font-semibold uppercase tracking-wider text-gold">
+                {COMPANY_NAME}
+              </p>
               <p className="font-display text-sm font-bold text-paper-50">
                 Panel Keamanan
               </p>
-              <p className="text-[11px] text-paper-50/60">Lapor Kehilangan Sawit</p>
+              <p className="text-[11px] text-paper-50/60">{APP_NAME}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

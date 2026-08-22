@@ -33,7 +33,8 @@
 
 @layer components {
   .field-shell {
-    @apply w-full rounded-lg border border-ink-900/15 bg-paper-50 px-3.5 py-2.5 text-[15px] text-ink-900 placeholder:text-ink-500/70 transition;
+    /* text-base (16px) di HTML mencegah Safari iOS auto-zoom saat input di-tap */
+    @apply w-full rounded-lg border border-ink-900/15 bg-paper-50 px-3.5 py-2.5 text-base text-ink-900 placeholder:text-ink-500/70 transition sm:text-[15px];
   }
   .field-shell:focus {
     @apply border-canopy-600;

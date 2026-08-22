@@ -1,8 +1,9 @@
 import Link from "next/link";
 import CekStatusForm from "@/components/CekStatusForm";
+import { COMPANY_NAME, APP_NAME } from "@/components/BrandMark";
 
 export const metadata = {
-  title: "Cek Status Laporan — Lapor Kehilangan Sawit",
+  title: `Cek Status Laporan — ${APP_NAME}`,
 };
 
 export default function CekStatusPage() {
@@ -17,12 +18,13 @@ export default function CekStatusPage() {
             ←
           </Link>
           <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gold">
+              {COMPANY_NAME}
+            </p>
             <p className="font-display text-[15px] font-bold leading-tight">
               Cek Status Laporan
             </p>
-            <p className="text-[11.5px] text-paper-50/70">
-              Lapor Kehilangan Sawit
-            </p>
+            <p className="text-[11.5px] text-paper-50/70">{APP_NAME}</p>
           </div>
         </div>
       </header>

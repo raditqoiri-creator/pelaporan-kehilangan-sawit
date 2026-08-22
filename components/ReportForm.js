@@ -14,7 +14,6 @@ const MapPicker = dynamic(() => import("./MapPicker"), {
   ),
 });
 
-const AFDELING_OPTIONS = ["Afdeling I", "Afdeling II", "Afdeling III", "Afdeling IV", "Afdeling V"];
 const KATEGORI_OPTIONS = [
   { value: "pencurian", label: "Pencurian TBS" },
   { value: "kehilangan", label: "Kehilangan (bukan indikasi pencurian)" },
@@ -319,21 +318,14 @@ export default function ReportForm() {
             <label className="field-label">
               Afdeling <span className="text-alert">*</span>
             </label>
-            <select
+            <input
+              type="text"
               required
+              placeholder="cth. Afdeling III"
               className="field-shell"
               value={fields.afdeling}
               onChange={(e) => update("afdeling", e.target.value)}
-            >
-              <option value="" disabled>
-                Pilih afdeling
-              </option>
-              {AFDELING_OPTIONS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <label className="field-label">

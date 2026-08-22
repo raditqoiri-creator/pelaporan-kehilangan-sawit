@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BrandMark, COMPANY_NAME, APP_NAME, APP_FULL_NAME } from "@/components/BrandMark";
 
 export default function AdminLoginPage() {
   return (
@@ -49,15 +50,16 @@ function LoginForm() {
       <div className="relative w-full max-w-sm">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold-600 shadow-lg shadow-black/20">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#0D2318" />
-            </svg>
+            <BrandMark size={20} />
           </div>
-          <h1 className="font-display text-lg font-bold text-paper-50">
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-widest text-gold">
+            {COMPANY_NAME}
+          </p>
+          <h1 className="mt-1 font-display text-lg font-bold text-paper-50">
             Portal Admin Keamanan
           </h1>
           <p className="mt-1 text-[13px] text-paper-50/60">
-            Lapor Kehilangan Sawit
+            {APP_NAME} &middot; {APP_FULL_NAME}
           </p>
         </div>
 

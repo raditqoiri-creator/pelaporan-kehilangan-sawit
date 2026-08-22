@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Lapor Kehilangan Sawit",
+  title: "SIAGA TBS — Sistem Informasi Pengamanan dan Pelaporan TBS",
   description:
-    "Sistem pelaporan kehilangan dan pencurian sawit untuk unit kebun perusahaan.",
+    "Sistem pelaporan resmi kehilangan dan pencurian TBS (Tandan Buah Segar) untuk unit keamanan kebun PT Perkebunan Nusantara IV.",
 };
 
 export const viewport = {

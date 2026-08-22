@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReportForm from "@/components/ReportForm";
+import { BrandMark, COMPANY_NAME, UNIT_NAME, APP_NAME, APP_FULL_NAME } from "@/components/BrandMark";
 
 export default function HomePage() {
   return (
@@ -11,13 +12,19 @@ export default function HomePage() {
 
         <div className="relative">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-600 shadow-lg shadow-black/20">
-            <ShieldIcon size={26} />
+            <BrandMark size={26} />
           </div>
-          <h1 className="mt-8 font-display text-3xl font-bold leading-tight">
-            Lapor Kehilangan Sawit
+          <p className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-widest text-gold">
+            {COMPANY_NAME}
+          </p>
+          <h1 className="mt-1.5 font-display text-3xl font-bold leading-tight">
+            {APP_NAME}
           </h1>
+          <p className="mt-1 text-[13px] font-medium text-paper-50/60">
+            {APP_FULL_NAME}
+          </p>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-paper-50/75">
-            Sistem pelaporan resmi untuk unit keamanan &amp; pengamanan kebun.
+            Sistem pelaporan resmi untuk {UNIT_NAME.toLowerCase()}.
             Laporkan kejadian langsung dari lapangan, lengkap dengan lokasi,
             bukti foto, dan tanda tangan digital.
           </p>
@@ -37,14 +44,14 @@ export default function HomePage() {
           <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-600">
-                <ShieldIcon />
+                <BrandMark />
               </div>
               <div>
-                <p className="font-display text-[15px] font-bold leading-tight">
-                  Lapor Kehilangan Sawit
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gold">
+                  {COMPANY_NAME}
                 </p>
-                <p className="text-[11.5px] text-paper-50/70">
-                  Unit Keamanan &amp; Pengamanan Kebun
+                <p className="font-display text-[15px] font-bold leading-tight">
+                  {APP_NAME}
                 </p>
               </div>
             </div>
@@ -105,13 +112,3 @@ function InfoRow({ text }) {
   );
 }
 
-function ShieldIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"
-        fill="#0D2318"
-      />
-    </svg>
-  );
-}

@@ -1,6 +1,7 @@
-# Lapor Kehilangan Sawit
+# SIAGA TBS
+### Sistem Informasi Pengamanan dan Pelaporan TBS
 
-Aplikasi web pelaporan kehilangan/pencurian sawit untuk unit keamanan kebun,
+Aplikasi web pelaporan kehilangan/pencurian TBS (Tandan Buah Segar) untuk unit keamanan kebun,
 dibangun agar siap **hosting di Vercel** dengan backend **gratis** (Supabase
 free tier). Terdiri dari dua bagian yang terintegrasi dalam satu sistem:
 
