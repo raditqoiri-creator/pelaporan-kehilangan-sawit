@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import StatusBadge from "@/components/StatusBadge";
 import { BrandMark, COMPANY_NAME, APP_NAME } from "@/components/BrandMark";
+import ConfirmModal from "@/components/ConfirmModal";
 
 const AdminMapView = dynamic(() => import("./AdminMapView"), {
   ssr: false,
@@ -56,7 +57,7 @@ function playChime() {
   }
 }
 
-export default function DashboardClient({ initialData, adminName }) {
+export default function DashboardClient({ initialData, adminName, adminRole }) {
   const router = useRouter();
   const [tab, setTab] = useState("semua");
   const [query, setQuery] = useState("");
@@ -68,6 +69,9 @@ export default function DashboardClient({ initialData, adminName }) {
   const [rows, setRows] = useState(initialData);
   const [pendingNew, setPendingNew] = useState([]);
   const [lastSynced, setLastSynced] = useState(new Date());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const knownIds = useRef(new Set(initialData.map((r) => r.id)));
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
@@ -194,6 +198,25 @@ export default function DashboardClient({ initialData, adminName }) {
       if (res.ok) setDetail((d) => ({ ...d, catatan_admin: json.data.catatan_admin }));
     } finally {
       setSavingStatus(false);
+    }
+  }
+
+  async function deleteLaporan() {
+    if (!selected) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch(`/api/laporan/${selected}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Gagal menghapus laporan.");
+      setRows((rs) => rs.filter((r) => r.id !== selected));
+      setSelected(null);
+      setDetail(null);
+      setDeleteConfirmOpen(false);
+    } catch (err) {
+      setDeleteError(err.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -519,12 +542,63 @@ export default function DashboardClient({ initialData, adminName }) {
                     onSave={saveCatatan}
                     saving={savingStatus}
                   />
+
+                  {detail.log?.length > 0 && (
+                    <div className="mt-5 border-t border-dashed border-ink-900/15 pt-4">
+                      <p className="field-label">Riwayat perubahan</p>
+                      <ul className="space-y-1.5">
+                        {detail.log.map((l, i) => (
+                          <li key={i} className="text-[11.5px] text-ink-500">
+                            <span className="font-semibold text-ink-700">{l.admin_username}</span>{" "}
+                            {l.aksi === "ubah_status" && `mengubah status (${l.detail})`}
+                            {l.aksi === "ubah_catatan" && "memperbarui catatan"}
+                            {l.aksi === "hapus_laporan" && "menghapus laporan"}
+                            {" · "}
+                            {new Date(l.dibuat_pada).toLocaleString("id-ID", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {adminRole === "superadmin" && (
+                    <div className="mt-5 border-t border-dashed border-ink-900/15 pt-4">
+                      {deleteError && (
+                        <p className="mb-2 rounded-lg bg-alert-light px-3 py-2 text-xs text-alert-dark">
+                          {deleteError}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        className="w-full rounded-lg border border-alert/30 py-2 text-xs font-semibold text-alert-dark transition hover:bg-alert-light"
+                      >
+                        Hapus Laporan Ini
+                      </button>
+                      <p className="mt-1.5 text-center text-[11px] text-ink-500">
+                        Hanya untuk laporan spam/duplikat/salah input. Tidak bisa dibatalkan.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
         </section>
       </div>
+
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        title="Hapus laporan ini?"
+        message="Laporan beserta foto dan tanda tangan akan dihapus permanen dari database. Tindakan ini tidak bisa dibatalkan."
+        confirmLabel="Ya, hapus laporan"
+        danger
+        loading={deleting}
+        onConfirm={deleteLaporan}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 }
