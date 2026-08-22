@@ -43,7 +43,11 @@ function LoginForm() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-canopy-950 via-canopy-900 to-canopy-800 px-5">
+    <main
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-canopy-950 bg-cover bg-center px-5"
+      style={{ backgroundImage: "url('/images/plantation-hero.jpg')" }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-canopy-950/95 via-canopy-900/90 to-canopy-950/95" />
       <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/10" />
       <div className="absolute -left-16 bottom-10 h-56 w-56 rotate-12 rounded-3xl bg-gold/5" />
 

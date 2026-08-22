@@ -6,7 +6,12 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-paper-100 lg:flex">
       {/* Panel bermerek — hanya tampil di layar desktop (lg ke atas) */}
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-canopy-950 via-canopy-900 to-canopy-800 px-10 py-12 text-paper-50 lg:flex lg:w-[38%] lg:min-h-screen lg:flex-col lg:justify-between">
+      <aside
+        className="relative hidden overflow-hidden bg-canopy-950 bg-cover bg-center px-10 py-12 text-paper-50 lg:flex lg:w-[38%] lg:min-h-screen lg:flex-col lg:justify-between"
+        style={{ backgroundImage: "url('/images/plantation-hero.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-canopy-950/95 via-canopy-950/80 to-canopy-950/95" />
+        <div className="absolute inset-0 bg-canopy-950/30" />
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold/10" />
         <div className="absolute -left-16 bottom-10 h-56 w-56 rotate-12 rounded-3xl bg-gold/5" />
 
@@ -72,6 +77,22 @@ export default function HomePage() {
           >
             Cek Status Laporan
           </Link>
+        </div>
+
+        {/* Hero foto — hanya mobile/tablet, panel desktop sudah punya foto sendiri */}
+        <div
+          className="relative h-36 w-full bg-canopy-900 bg-cover bg-center lg:hidden"
+          style={{ backgroundImage: "url('/images/plantation-hero.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-canopy-950/90 via-canopy-950/25 to-canopy-950/10" />
+          <div className="relative flex h-full flex-col justify-end px-5 pb-3">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-gold">
+              {UNIT_NAME}
+            </p>
+            <p className="text-[13px] font-medium text-paper-50/90">
+              Amankan hasil panen, laporkan setiap kejadian
+            </p>
+          </div>
         </div>
 
         {/* Hero strip */}

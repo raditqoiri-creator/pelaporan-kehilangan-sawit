@@ -29,6 +29,13 @@ export default function CekStatusPage() {
         </div>
       </header>
 
+      <div
+        className="relative h-28 w-full bg-canopy-900 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/plantation-hero.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-canopy-950/85 via-canopy-950/30 to-canopy-950/10" />
+      </div>
+
       <div className="px-5 pt-6 lg:mx-auto lg:max-w-2xl lg:px-10">
         <CekStatusForm />
       </div>
