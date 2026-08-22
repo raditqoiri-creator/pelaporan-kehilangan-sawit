@@ -432,19 +432,25 @@ export default function DashboardClient({ initialData, adminName }) {
                     <Field label="TM" value={detail.tm || "-"} />
                     <Field
                       label="Koordinat"
-                      value={`${Number(detail.lat).toFixed(6)}, ${Number(detail.lng).toFixed(6)}`}
+                      value={
+                        detail.lat != null && detail.lng != null
+                          ? `${Number(detail.lat).toFixed(6)}, ${Number(detail.lng).toFixed(6)}`
+                          : "Tidak dicatat"
+                      }
                       mono
                     />
                   </dl>
 
-                  <a
-                    href={`https://www.google.com/maps?q=${detail.lat},${detail.lng}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-canopy-700 hover:underline"
-                  >
-                    Buka di Google Maps ↗
-                  </a>
+                  {detail.lat != null && detail.lng != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${detail.lat},${detail.lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-canopy-700 hover:underline"
+                    >
+                      Buka di Google Maps ↗
+                    </a>
+                  )}
 
                   <div className="mt-4">
                     <p className="field-label">Keterangan</p>

@@ -96,7 +96,13 @@ export default function HomePage() {
         </div>
 
         <footer className="mx-auto max-w-xl px-5 pt-2 text-center text-[11px] text-ink-500 lg:max-w-2xl lg:px-10 lg:text-left">
-          Data terenkripsi &amp; hanya dapat diakses oleh tim keamanan berwenang.
+          <p>Data terenkripsi &amp; hanya dapat diakses oleh tim keamanan berwenang.</p>
+          <Link
+            href="/admin/login"
+            className="mt-2 inline-block text-ink-500 underline decoration-dotted hover:text-canopy-700"
+          >
+            Login Admin
+          </Link>
         </footer>
       </div>
     </main>

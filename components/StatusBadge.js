@@ -5,7 +5,7 @@ export const STATUS_CONFIG = {
   },
   diproses: {
     label: "Diproses",
-    className: "border-gold text-gold-DEFAULT",
+    className: "border-gold text-gold",
   },
   selesai: {
     label: "Selesai",
